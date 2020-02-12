@@ -36,44 +36,47 @@ func BuildGraph(dictionary []string) map[string][]string {
 // Each iteration we create a new level of the tree, check for the end of the path and add the nodes to the visited set.
 // In case of multiple paths with the same legth Path return the first one found.
 func Path(graph map[string][]string, start, stop string) []string {
-	queue := []revlist{revlist{nil, start}}
+	queue := []*revlist{&revlist{nil, start}} //the beginning
 	visited := make(map[string]bool)
 	visited[start] = true
-	nextLevel := []revlist{}
+	nextLevel := []*revlist{}
+	count := 0
 
 	for {
 		//new level
-		nextLevel = []revlist{}
+		nextLevel = []*revlist{}
 		for _, node := range queue {
 			if node.val == stop { //we have a winner
 				return revpath(node)
 			}
-			children := explore(graph, &node, visited)
+			children := explore(graph, node, visited)
 			nextLevel = append(nextLevel, children...)
 		}
 		//check for termination
-		if len(nextLevel) == 0 { //no path, no more nodes not visited
+		if len(nextLevel) == 0 { //no more nodes not visited -> no path
 			return nil
 		}
 		queue = nextLevel
+		count++
 	}
 }
 
 //explore returns all the nodes reachable from on node in a reverse list
-func explore(graph map[string][]string, parent *revlist, visited map[string]bool) []revlist {
-	ret := []revlist{}
+func explore(graph map[string][]string, parent *revlist, visited map[string]bool) []*revlist {
+	ret := []*revlist{}
 
 	// new level
 	list := graph[parent.val]
 	for _, node := range list {
 		if !visited[node] {
-			ret = append(ret, revlist{parent, node})
+			ret = append(ret, &revlist{parent, node})
 			visited[node] = true
 		}
 	}
 	return ret
 }
 
+// TODO: figure out if this is a huge memory leak
 type revlist struct {
 	parent *revlist
 	val    string
@@ -81,11 +84,11 @@ type revlist struct {
 
 //we need to reconstruct the reverse path and then reverse it
 // we have a backward linked list with the first element with a nil parent
-func revpath(end revlist) []string {
+func revpath(end *revlist) []string {
 	ret := []string{}
 	for end.parent != nil {
 		ret = append(ret, end.val)
-		end = *end.parent
+		end = end.parent
 	}
 	//we misssed the first one since its parent == nil
 	ret = append(ret, end.val)
