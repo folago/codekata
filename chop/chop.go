@@ -1,5 +1,7 @@
 package chop
 
+import "math"
+
 // Chop takes an integer search target and a sorted, in ascending order, slice of integers.
 // It returns the integer index of the target in the array, or -1 if the target is not in the slice.
 func Chop(num int, list []int) int {
@@ -56,4 +58,31 @@ func inRange(num int, list []int) bool {
 		return false
 	}
 	return true
+}
+
+// Chop2 takes an integer search target and a sorted, in ascending order, slice of integers.
+// It returns the integer index of the target in the array, or -1 if the target is not in the slice.
+func Chop2(num int, list []int) int {
+	ret, done := precheck(num, list) //maybe I should rename precheck
+	if done {
+		return ret
+	}
+	iter := int(math.Ceil(math.Log2(float64(len(list))))) //worst case
+	var split, offset, next int
+	for i := 0; i <= iter; i++ { //if we dont find our number in the worst case we are doomed!
+		split = len(list) / 2
+		next = list[split]
+		switch {
+		// case len(list) <= 1 && next != num:
+		// 	return -1
+		case next == num:
+			return split + offset
+		case num > next: //right
+			offset += split
+			list = list[split:]
+		case num < next: //left
+			list = list[:split]
+		}
+	}
+	return -1
 }
