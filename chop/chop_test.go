@@ -195,4 +195,11 @@ func TestChop(t *testing.T) {
 			}
 		})
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Chop3(tt.args.num, tt.args.list); got != tt.want {
+				t.Errorf("Chop3() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
