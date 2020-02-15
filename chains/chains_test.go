@@ -1,8 +1,6 @@
 package chains
 
 import (
-	"bufio"
-	"os"
 	"reflect"
 	"testing"
 )
@@ -165,23 +163,6 @@ func TestPath(t *testing.T) {
 	}
 }
 
-func readWords(fname string) ([]string, error) {
-	fin, err := os.Open(fname)
-	if err != nil {
-		return nil, err
-	}
-	defer fin.Close()
-	ret := []string{}
-	scanner := bufio.NewScanner(fin)
-	for scanner.Scan() {
-		ret = append(ret, scanner.Text())
-	}
-	if err = scanner.Err(); err != nil {
-		return nil, err
-	}
-	return ret, nil
-}
-
 func TestPathLong(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -274,28 +255,6 @@ func BenchmarkPathCodeRuby(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Path(graph3, "code", "ruby")
-	}
-}
-func BenchmarkPathWordListRubyCode(b *testing.B) {
-	words, err := readWords("testdata/wordlist.txt")
-	if err != nil {
-		b.Error(err)
-	}
-	graphWords := BuildGraph(words)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		Path(graphWords, "ruby", "code")
-	}
-}
-func BenchmarkPathWordListCodeRuby(b *testing.B) {
-	words, err := readWords("testdata/wordlist.txt")
-	if err != nil {
-		b.Error(err)
-	}
-	graphWords := BuildGraph(words)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		Path(graphWords, "code", "ruby")
 	}
 }
 
