@@ -115,6 +115,46 @@ func TestPath(t *testing.T) {
 			},
 			want: nil,
 		},
+		{
+			name: "6 nodes graph, path exists",
+			args: args{
+				graph: map[string][]string{"A": {"B", "C"}, "B": {"D", "A"}, "C": {"E", "F", "A"}, "E": {"D", "E"}, "F": {"C"}},
+				start: "A",
+				stop:  "D",
+			},
+			want: []string{"A", "B", "D"},
+		},
+		{
+			name: "6 nods graph, no path exists",
+			args: args{
+				graph: map[string][]string{"A": {"B", "C"}, "B": {"D", "A"}, "C": {"E", "F", "A"}, "E": {"D", "E"}, "F": {"C"}, "G": {}},
+				start: "A",
+				stop:  "G",
+			},
+			want: nil,
+		},
+		{
+			name: "10 nodes graph, more pats exist",
+			args: args{
+				graph: map[string][]string{"A": {"B", "C"}, "B": {"D", "A"}, "C": {"E", "F", "A"},
+					"D": {"G", "X", "B"}, "E": {"C", "H"}, "F": {"C", "I"}, "G": {"D", "X"},
+					"H": {"E", "X"}, "I": {"F", "X"}, "X": {"D", "G", "H", "I"},
+				},
+				//      A
+				//     / \
+				//    B   C
+				//   /    /\
+				//  D    E  F
+				//  |\   |  |
+				//  | G  H  I
+				//  | /  |  |
+				//  |/   /  /
+				//  X---'--'
+				start: "A",
+				stop:  "X",
+			},
+			want: []string{"A", "B", "D", "X"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -146,12 +186,12 @@ func TestPathLong(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
-	words, err := readWords("testdata/word3.txt")
+	//TODO: add more workds and make this test more significant
+	words, err := ReadWords("testdata/word3.txt", 3)
 	if err != nil {
 		t.Error(err)
 	}
 	graph3 := BuildGraph(words)
-	// fmt.Println(graph3)
 
 	type args struct {
 		graph map[string][]string
@@ -186,6 +226,116 @@ func TestPathLong(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Path(tt.args.graph, tt.args.start, tt.args.stop); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Path() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkPathDogHam(b *testing.B) {
+	words, err := ReadWords("testdata/wordlist.txt", 3)
+	if err != nil {
+		b.Error(err)
+	}
+	graph3 := BuildGraph(words)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Path(graph3, "dog", "ham")
+	}
+}
+func BenchmarkPathHamDog(b *testing.B) {
+	words, err := ReadWords("testdata/wordlist.txt", 3)
+	if err != nil {
+		b.Error(err)
+	}
+	graph3 := BuildGraph(words)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Path(graph3, "ham", "dog")
+	}
+}
+func BenchmarkPathRubyCode(b *testing.B) {
+	words, err := ReadWords("testdata/wordlist.txt", 4)
+	if err != nil {
+		b.Error(err)
+	}
+	graph3 := BuildGraph(words)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Path(graph3, "ruby", "code")
+	}
+}
+
+func BenchmarkPathCodeRuby(b *testing.B) {
+	words, err := ReadWords("testdata/wordlist.txt", 4)
+	if err != nil {
+		b.Error(err)
+	}
+	graph3 := BuildGraph(words)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Path(graph3, "code", "ruby")
+	}
+}
+func BenchmarkPathWordListRubyCode(b *testing.B) {
+	words, err := readWords("testdata/wordlist.txt")
+	if err != nil {
+		b.Error(err)
+	}
+	graphWords := BuildGraph(words)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Path(graphWords, "ruby", "code")
+	}
+}
+func BenchmarkPathWordListCodeRuby(b *testing.B) {
+	words, err := readWords("testdata/wordlist.txt")
+	if err != nil {
+		b.Error(err)
+	}
+	graphWords := BuildGraph(words)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Path(graphWords, "code", "ruby")
+	}
+}
+
+func TestReadWords(t *testing.T) {
+	type args struct {
+		fname  string
+		length int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []string
+		wantErr bool
+	}{
+		{
+			name: "read words lenght 5 list",
+			args: args{
+				fname:  "testdata/words_3_5.txt",
+				length: 3,
+			},
+			want: []string{"hae", "hag", "hah", "haj", "ham"},
+		},
+		{
+			name: "read words lenght 5 list",
+			args: args{
+				fname:  "testdata/words_3_5.txt",
+				length: 5,
+			},
+			want: []string{"aahed", "aalii", "aargh", "abaca"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ReadWords(tt.args.fname, tt.args.length)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ReadWords() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReadWords() = %v, want %v", got, tt.want)
 			}
 		})
 	}

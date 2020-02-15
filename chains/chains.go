@@ -1,5 +1,11 @@
 package chains
 
+import (
+	"bufio"
+	"os"
+	"strings"
+)
+
 // Distance returns the number of letters that differs from string a to b.
 // The strings must be of the same length, if not -1 is returned.
 // Important: here we use bytes as characters, so ASCII strings only
@@ -98,4 +104,28 @@ func revpath(end *revlist) []string {
 		ret[left], ret[right] = ret[right], ret[left]
 	}
 	return ret
+}
+
+// ReadWords reads all the words of a lenght from a file.
+func ReadWords(fname string, length int) ([]string, error) {
+	fin, err := os.Open(fname)
+	if err != nil {
+		return nil, err
+	}
+	defer fin.Close()
+	var (
+		ret     = []string{}
+		scanner = bufio.NewScanner(fin)
+		word    string
+	)
+	for scanner.Scan() {
+		word = strings.TrimSpace(scanner.Text())
+		if len(word) == length {
+			ret = append(ret, word)
+		}
+	}
+	if err = scanner.Err(); err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
