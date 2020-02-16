@@ -1,6 +1,8 @@
 package chop
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestChop(t *testing.T) {
 	type args struct {
@@ -199,6 +201,65 @@ func TestChop(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Chop3(tt.args.num, tt.args.list); got != tt.want {
 				t.Errorf("Chop3() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Chop4(tt.args.num, tt.args.list); got != tt.want {
+				t.Errorf("Chop4() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_linearScale(t *testing.T) {
+	type args struct {
+		n    int
+		list []int
+	}
+	tests := []struct {
+		name string
+		args args
+		want int
+	}{
+		{
+			name: "scale 5 to interval [5,10]",
+			args: args{
+				n:    5,
+				list: []int{5, 6, 7, 8, 9, 10},
+			},
+			want: 0,
+		},
+		{
+			name: "scale 9 to interval [5,10]",
+			args: args{
+				n:    9,
+				list: []int{5, 6, 7, 8, 9, 10},
+			},
+			want: 4,
+		},
+		{
+			name: "scale 10 to interval [5,10]",
+			args: args{
+				n:    10,
+				list: []int{5, 6, 7, 8, 9, 10},
+			},
+			want: 5,
+		},
+		{
+			name: "scale 5 to interval [4,10]",
+			args: args{
+				n:    7,
+				list: []int{4, 5, 6, 7, 8, 9, 10},
+			},
+			want: 3,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := linearScale(tt.args.n, tt.args.list); got != tt.want {
+				t.Errorf("linearScale() = %v, want %v", got, tt.want)
 			}
 		})
 	}

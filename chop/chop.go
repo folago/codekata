@@ -56,6 +56,9 @@ func precheck(num int, list []int) (int, bool) {
 
 //inRange test if an int is in the range of a sorted slice of int
 func inRange(num int, list []int) bool {
+	if len(list) == 0 {
+		return false
+	}
 	if num < list[0] || num > list[len(list)-1] {
 		return false
 	}
@@ -112,4 +115,53 @@ func Chop3(num int, list []int) int {
 		}
 	}
 	return -1
+}
+
+// Chop4 takes an integer search target and a sorted, in ascending order, slice of integers.
+// It returns the integer index of the target in the array, or -1 if the target is not in the slice.
+// This version is (an attempt to) an euristic approach, we look where the number should be
+// in the list if the numbers were spread evenly.
+func Chop4(num int, list []int) int {
+	ret, done := precheck(num, list)
+	if done {
+		return ret
+	}
+	split := linearScale(num, list)
+	if split == 0 {
+		split = 1 //we already chacked the extremes, we need to narrow it down
+	}
+	left := list[:split]
+	right := list[split:]
+	offset := 0
+	switch {
+	case inRange(num, left):
+		offset = Chop4(num, left)
+		if offset >= 0 { //we have a winner
+			return offset
+		}
+	case inRange(num, right):
+		offset = Chop4(num, right)
+		if offset >= 0 { //we have a winner
+			return offset + split
+		}
+	default:
+		return -1
+	}
+	return -1
+}
+
+//from https://stats.stackexchange.com/questions/281162/scale-a-number-between-a-range/281164
+//we scale the number we are looking for from numeric interval of the number of the list to the position
+func linearScale(n int, list []int) int {
+	var (
+		m    = float64(n)
+		rmin = float64(list[0])
+		rmax = float64(list[len(list)-1])
+		// tmin = 0.0
+		tmax = float64(len(list) - 1)
+	)
+	// ret := (m-rmin)/(rmax-rmin)*(tmax-tmin) + tmin
+	ret := (m - rmin) / (rmax - rmin) * tmax
+
+	return int(ret)
 }
